@@ -107,12 +107,12 @@
   - [x] `agent_profiles` (mutable)
 
 #### Step 2.2: Build Basic MCP Server
-- [ ] Create: `src/mcp-server/index.ts` (Express server)
-- [ ] Implement: `/query` endpoint (with access control)
-- [ ] Implement: `/insert` endpoint (with namespace scoping)
-- [ ] Run: `npm run dev` (start MCP server)
-- [ ] Test query: `curl -X POST http://localhost:3000/query -H "Content-Type: application/json" -d '{"table": "ontology_definitions", "agentId": "test-agent"}'`
-- [ ] Test insert: `curl -X POST http://localhost:3000/insert -H "Content-Type: application/json" -d '{"table": "task_execution_notes", "agentId": "test-agent", "data": {"task_id": "TASK-001", "agent_id": "test-agent", "note": "Test", "note_type": "observation"}}'`
+- [x] Create: `src/mcp-server/index.ts` (Express server)
+- [x] Implement: `/query` endpoint (with access control)
+- [x] Implement: `/insert` endpoint (with namespace scoping)
+- [x] Run: `npm run dev:mcp` (start MCP server)
+- [x] Test query: `curl -X POST http://localhost:3000/query ...`
+- [x] Test insert: `curl -X POST http://localhost:3000/insert ...`
 
 **Day 2 Morning Complete**: [ ] Yes | [ ] No
 
