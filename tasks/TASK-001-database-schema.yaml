@@ -1,0 +1,100 @@
+task_id: TASK-001
+title: Create Core Database Schema (Event Sourcing)
+status: OPEN
+type: database_schema
+owner: human-lead
+assigned_to: DB-Specialist-Agent
+
+description: |
+  Implement the foundational PostgreSQL database schema for the Autonomous Task Marketplace.
+  This includes immutable event logging, verification reports, and agent artifact storage.
+  The schema must support the 6-dimension ontology and be migration-ready.
+
+ontology:
+  capability: database-design
+  accountability:
+    responsible: DB-Specialist-Agent
+    accountable: Human-Lead
+    consulted: Task-Definition-Agent
+    informed: Primary-Verifier
+  quality:
+    - strict-schema-validation
+    - immutable-audit-trail
+    - idempotent-migrations
+  temporality: week-1-day-3
+  context:
+    - docs/bootstrap/specifications/database-schema.sql
+    - docs/bootstrap/specifications/event-schema.yaml
+  artifact:
+    - database/migrations/001_phase0_core_schema.sql
+    - database/schema.test.ts
+
+acceptance_criteria:
+  - id: AC-001
+    description: Events table implementation
+    given: A clean PostgreSQL database
+    when: The migration is applied
+    then: |
+      The 'events' table exists with columns:
+      - id (UUID PK)
+      - type (VARCHAR)
+      - source (VARCHAR)
+      - subject (VARCHAR)
+      - time (TIMESTAMPTZ)
+      - datacontenttype (VARCHAR)
+      - data (JSONB)
+      And an update/delete trigger prevents modification.
+
+  - id: AC-002
+    description: Verification reports table implementation
+    given: The 'verification_reports' table exists
+    when: Inserting a report
+    then: |
+      It accepts valid scores (0-100) and requires 'dimension_scores' JSONB
+      containing all 6 ontology keys: capability, accountability, quality,
+      temporality, context, artifact.
+
+  - id: AC-003
+    description: Agent artifacts table implementation
+    given: The 'agent_artifacts' table exists
+    when: Storing a polymorphic artifact
+    then: |
+      It stores 'canonical_representation' as JSONB and 'metadata' as JSONB.
+      It enforces 'artifact_type' and 'produced_by' constraints.
+
+  - id: AC-004
+    description: Reference tables existence
+    given: The migration is complete
+    when: Querying information_schema
+    then: |
+      Tables 'agent_specifications', 'reference_documentation', 
+      'ontology_definitions', 'raci_matrices', 'artifact_schemas' exist.
+
+  - id: AC-005
+    description: Mutable tables existence
+    given: The migration is complete
+    when: Querying information_schema
+    then: |
+      Tables 'task_contracts' and 'agent_profiles' exist.
+
+  - id: AC-006
+    description: Task state transitions
+    given: The 'task_contracts' table
+    when: A task status is updated
+    then: |
+      Ideally, state changes are logged to 'events' (though implementation may vary in Phase 0).
+      Status column exists with appropriate type/check constraints.
+
+test_requirements:
+  - framework: vitest
+  - coverage: 85%
+  - file: database/schema.test.ts
+  - types:
+    - unit: Validate constraints and triggers
+    - integration: Verify migration application on fresh DB
+
+proof_requirements:
+  - file: database/migrations/001_phase0_core_schema.sql
+  - file: database/schema.test.ts
+  - command: npm run test
+  - execution_notes: Logged to task_execution_notes table

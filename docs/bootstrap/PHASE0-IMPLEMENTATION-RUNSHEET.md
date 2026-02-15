@@ -153,11 +153,11 @@
 ### Days 3-4: First Task Execution - TASK-001 (~6 hours)
 
 #### Step 3.1: Create First Task Contract
-- [ ] Create: `tasks/TASK-001-database-schema.yaml` (manually or via Task-Definition-Agent)
-- [ ] Verify: All 6 dimensions specified
-- [ ] Verify: 5-15 acceptance criteria (Given/When/Then format)
-- [ ] Verify: Test requirements specified
-- [ ] Verify: Proof requirements listed
+- [x] Create: `tasks/TASK-001-database-schema.yaml` (manually or via Task-Definition-Agent)
+- [x] Verify: All 6 dimensions specified
+- [x] Verify: 5-15 acceptance criteria (Given/When/Then format)
+- [x] Verify: Test requirements specified
+- [x] Verify: Proof requirements listed
 
 #### Step 3.2: Execute TASK-001
 - [ ] Invoke: `@db-specialist Please implement TASK-001: #file:tasks/TASK-001-database-schema.yaml`
