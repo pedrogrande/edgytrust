@@ -50,13 +50,13 @@
 - [x] Copy context document to: `docs/context/AutonomousTaskMarketSystem.md`
 
 #### Step 1.4: Initialize Node.js Project
-- [ ] Run: `npm init -y`
-- [ ] Run: `npm install typescript tsx vitest @vitest/coverage-v8 pg @types/pg dotenv express @types/express zod`
-- [ ] Run: `npm install -D @types/node eslint prettier`
-- [ ] Edit `package.json` scripts:
+- [x] Run: `npm init -y`
+- [x] Run: `npm install typescript tsx vitest @vitest/coverage-v8 pg @types/pg dotenv express @types/express zod`
+- [x] Run: `npm install -D @types/node eslint prettier`
+- [x] Edit `package.json` scripts:
   ```json
   "scripts": {
-    "dev": "tsx watch src/mcp-server/index.ts",
+    "dev:mcp": "tsx watch src/mcp-server/index.ts",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
