@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: edgytrust_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: taskmarket
+      POSTGRES_PASSWORD: dev_password_change_me
+      POSTGRES_DB: task_marketplace
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

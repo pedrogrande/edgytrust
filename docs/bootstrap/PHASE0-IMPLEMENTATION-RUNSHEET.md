@@ -68,23 +68,23 @@
 
 #### Step 1.5: Set Up PostgreSQL
 **Option A: Docker (Recommended)**
-- [ ] Create: `docker-compose.yml` (postgres:16 config)
-- [ ] Run: `docker-compose up -d`
-- [ ] Verify: `psql postgresql://taskmarket:dev_password_change_me@localhost:5432/task_marketplace -c "SELECT version();"`
+- [x] Create: `docker-compose.yml` (postgres:16 config)
+- [x] Run: `docker-compose up -d`
+- [x] Verify: `psql postgresql://taskmarket:dev_password_change_me@localhost:5433/task_marketplace -c "SELECT version();"` (Using port 5433)
 
 **Option B: Local PostgreSQL**
 - [ ] Install: `brew install postgresql@16` (macOS)
 - [ ] Start: `brew services start postgresql@16`
 - [ ] Create DB: `createdb task_marketplace`
 
-- [ ] Create `.env` file:
+- [x] Create `.env` file:
   ```
-  DATABASE_URL=postgresql://taskmarket:dev_password_change_me@localhost:5432/task_marketplace
+  DATABASE_URL=postgresql://taskmarket:dev_password_change_me@localhost:5433/task_marketplace
   NODE_ENV=development
   MCP_SERVER_PORT=3000
   ```
 
-**Day 1 Complete**: [ ] Yes | [ ] No
+**Day 1 Complete**: [x] Yes | [ ] No
 
 ---
 
