@@ -160,11 +160,11 @@
 - [x] Verify: Proof requirements listed
 
 #### Step 3.2: Execute TASK-001
-- [ ] Invoke: `@db-specialist Please implement TASK-001: #file:tasks/TASK-001-database-schema.yaml`
-- [ ] Monitor: Agent creates migration files in `/database/migrations/`
-- [ ] Monitor: Agent writes tests in `/database/schema.test.ts`
-- [ ] Monitor: Agent logs execution notes via MCP
-- [ ] Wait for: Handoff button → "Verify Database Schema"
+- [x] Invoke: `@db-specialist Please implement TASK-001: #file:tasks/TASK-001-database-schema.yaml`
+- [x] Monitor: Agent creates migration files in `/database/migrations/`
+- [x] Monitor: Agent writes tests in `/database/schema.test.ts`
+- [x] Monitor: Agent logs execution notes via MCP
+- [x] Wait for: Handoff button → "Verify Database Schema"
 
 #### Step 3.3: Verify TASK-001
 - [ ] Click handoff button (switches to `@primary-verifier`)
