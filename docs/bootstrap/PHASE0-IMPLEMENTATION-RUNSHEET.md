@@ -37,17 +37,17 @@
   - [x] `coverage`
 
 #### Step 1.3: Save Bootstrap Documentation
-- [ ] Create: `docs/bootstrap/examples/task-contract-example.yaml`
-- [ ] Create: `docs/bootstrap/examples/agent-specification-example.json`
-- [ ] Create: `docs/bootstrap/examples/raci-matrix-example.json`
-- [ ] Create: `docs/bootstrap/examples/polymorphic-artifact-example.json`
-- [ ] Create: `docs/bootstrap/specifications/verification-rubric.yaml`
-- [ ] Create: `docs/bootstrap/specifications/event-schema.yaml`
-- [ ] Create: `docs/bootstrap/specifications/test-execution.yaml`
-- [ ] Create: `docs/bootstrap/specifications/database-schema.sql`
-- [ ] Create: `docs/bootstrap/DEVELOPMENT.md` (dev environment setup)
-- [ ] Create: `docs/bootstrap/AGENT-EXECUTION-MODEL.md` (VSCode subagents)
-- [ ] Copy context document to: `docs/context/AutonomousTaskMarketSystem.md`
+- [x] Create: `docs/bootstrap/examples/task-contract-example.yaml`
+- [x] Create: `docs/bootstrap/examples/agent-specification-example.json`
+- [x] Create: `docs/bootstrap/examples/raci-matrix-example.json`
+- [x] Create: `docs/bootstrap/examples/polymorphic-artifact-example.json`
+- [x] Create: `docs/bootstrap/specifications/verification-rubric.yaml`
+- [x] Create: `docs/bootstrap/specifications/event-schema.yaml`
+- [x] Create: `docs/bootstrap/specifications/test-execution.yaml`
+- [x] Create: `docs/bootstrap/specifications/database-schema.sql`
+- [x] Create: `docs/bootstrap/DEVELOPMENT.md` (dev environment setup)
+- [x] Create: `docs/bootstrap/AGENT-EXECUTION-MODEL.md` (VSCode subagents)
+- [x] Copy context document to: `docs/context/AutonomousTaskMarketSystem.md`
 
 #### Step 1.4: Initialize Node.js Project
 - [ ] Run: `npm init -y`
