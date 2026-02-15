@@ -9,11 +9,11 @@ handoffs:
   - label: Next step
     agent: Ralph0
     prompt: Do the next task
-    send: false
+    send: true
   - label: Fix issues and resubmit
     agent: Ralph0
     prompt: "Review verification report, fix issues, and resubmit for verification"
-    send: false
+    send: true
 ---
 
 # Documentation Writer Agent

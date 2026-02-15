@@ -8,9 +8,9 @@ user-invokable: true
 disable-model-invocation: false
 handoffs:
   - label: Verify Progress
-    agent: Documenter
+    agent: Ralph Documenter
     prompt: Generate a status report showing completed vs remaining Phase 0 checklist items
-    send: false
+    send: true
 ---
 
 # Ralph Phase 0 Implementation Agent
