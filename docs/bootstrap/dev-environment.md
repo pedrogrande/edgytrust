@@ -1,25 +1,22 @@
 # Development Environment Setup
 
-This document outlines the repository configuration, database access, and API credentials needed for the Autonomous Task Marketplace System.
+## Repository
+- **URL**: https://github.com/pedrogrande/edgytrust.git
+- **Branch**: main
 
-## Repository Setup
-- **URL**: [To be provided]
-- **Access Credentials**: [To be provided]
-
-## Database Connection
-- **Type**: PostgreSQL (with event sourcing)
-- **Connection String**: [To be provided]
-- **Migration Tool**: [To be provided]
+## Database
+- **Target System (Phase 0 Task)**: PostgreSQL (Event Sourcing Schema)
+- **Agent Runtime / MCP**: SurrealDB
+- **Environment Variables**: Located in `.env`
 
 ## MCP Server
-- **Endpoint**: [To be provided]
-- **Authentication**: [To be provided]
+- **Status**: Setup and running (SurrealDB backed)
+- **Access**: Configured in VSCode
 
-## API Keys & Quotas
-- **OpenAI**: [To be provided]
-- **Anthropic**: [To be provided]
-- **Usage Limits**: [To be provided]
+## API Keys
+- **Provider**: OpenAI / Anthropic
+- **Status**: Pre-configured in VSCode
 
 ## Local Development
-- **Docker Compose**: [To be provided]
-- **Dependencies**: [To be provided]
+- **Runtime**: Node.js v25.2.1
+- **Package Manager**: pnpm

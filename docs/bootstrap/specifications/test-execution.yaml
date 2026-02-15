@@ -1,0 +1,294 @@
+# @format
+
+test_execution_version: "1.0.0"
+phase: 0
+last_updated: "2026-02-15T12:13:00Z"
+
+test_framework:
+  primary: "Vitest"
+  rationale: "Fast, modern, ESM-native, excellent TypeScript support"
+  version: "^1.0.0"
+  config_file: "vitest.config.ts"
+
+verification_test_execution:
+  how_primary_verifier_runs_tests:
+    method: "VSCode runTests tool + terminal commands"
+    sequence:
+      - step: 1
+        action: "Load task contract from MCP"
+        code: |
+          const task = await mcp.query('task_contracts', {
+            filter: { task_id: taskId }
+          });
+          const testRequirements = task.test_requirements;
+
+      - step: 2
+        action: "Run test suite using VSCode tool"
+        code: |
+          // Option A: Use runTests tool (VSCode native)
+          const testResults = await vscode.tools.runTests(
+            testRequirements.test_files[0].path // e.g., 'database/schema.test.ts'
+          );
+
+          // Option B: Use runCommands for custom test commands
+          const testOutput = await vscode.tools.runCommands('npm run test:coverage');
+
+      - step: 3
+        action: "Parse test results"
+        code: |
+          // Vitest outputs JSON when run with --reporter=json
+          const results = JSON.parse(testOutput.stdout);
+          const passed = results.testResults.numPassedTests;
+          const total = results.testResults.numTotalTests;
+          const coverage = results.coverageMap.getCoverageSummary().lines.pct;
+
+      - step: 4
+        action: "Calculate quality dimension scores"
+        code: |
+          const qualityScore = calculateQualityScore({
+            testsPass: passed === total,
+            coverage: coverage,
+            sanctuaryCulture: assessSanctuaryCulture(codeFiles),
+            cleanCode: assessCleanCode(codeFiles)
+          });
+
+      - step: 5
+        action: "Write verification report to MCP"
+        code: |
+          await mcp.insert('verification_reports', {
+            task_id: taskId,
+            verifier_id: myAgentId,
+            score: totalScore,
+            dimension_scores: { /* 6 dimensions */ },
+            test_results: {
+              passed: passed,
+              total: total,
+              coverage: coverage,
+              failures: results.testResults.testResults.filter(t => t.status === 'failed')
+            },
+            recommendation: totalScore >= 70 ? 'APPROVE' : 'REVISE'
+          });
+
+command_patterns:
+  run_all_tests:
+    command: "npm test"
+    vitest_equivalent: "vitest run"
+    output: "Terminal output with pass/fail summary"
+
+  run_with_coverage:
+    command: "npm run test:coverage"
+    vitest_equivalent: "vitest run --coverage"
+    output: "Coverage report in /coverage/ directory + terminal summary"
+
+  run_specific_file:
+    command: "npm test -- database/schema.test.ts"
+    vitest_equivalent: "vitest run database/schema.test.ts"
+
+  run_watch_mode:
+    command: "npm test -- --watch"
+    vitest_equivalent: "vitest watch"
+    usage: "For agents during development (not verification)"
+
+  run_with_json_reporter:
+    command: "npm test -- --reporter=json --outputFile=test-results.json"
+    vitest_equivalent: "vitest run --reporter=json --outputFile=test-results.json"
+    usage: "Programmatic parsing by verifiers"
+
+test_file_structure:
+  location: "Co-located with source files or in /tests/ directory"
+  naming_convention: "*.test.ts or *.spec.ts"
+  example_structure: |
+    /database/
+      schema.ts              # Implementation
+      schema.test.ts         # Tests
+    /api/
+      routes.ts
+      routes.test.ts
+    /tests/
+      integration/           # Integration tests
+        task-lifecycle.test.ts
+      e2e/                   # End-to-end tests (Phase 1+)
+        full-workflow.test.ts
+
+vitest_configuration:
+  file: "vitest.config.ts"
+  essential_config: |
+    import { defineConfig } from 'vitest/config';
+
+    export default defineConfig({
+      test: {
+        globals: true,
+        environment: 'node',
+        coverage: {
+          provider: 'v8', // or 'istanbul'
+          reporter: ['text', 'json', 'html', 'lcov'],
+          lines: 85,
+          functions: 85,
+          branches: 80,
+          statements: 85,
+          exclude: [
+            'node_modules/',
+            'dist/',
+            '**/*.test.ts',
+            '**/*.spec.ts'
+          ]
+        },
+        include: ['**/*.test.ts', '**/*.spec.ts'],
+        testTimeout: 10000, // 10 seconds per test
+      }
+    });
+
+test_result_parsing:
+  vitest_json_output_schema:
+    testResults:
+      numTotalTests: "integer"
+      numPassedTests: "integer"
+      numFailedTests: "integer"
+      numPendingTests: "integer"
+      testResults:
+        - ancestorTitles: ["array of describe blocks"]
+          title: "string (test name)"
+          status: "passed|failed|pending|skipped"
+          duration: "integer (ms)"
+          failureMessages: ["array of error messages"]
+
+  example_parsing_logic: |
+    const testResults = JSON.parse(await readFile('test-results.json', 'utf-8'));
+
+    const summary = {
+      total: testResults.numTotalTests,
+      passed: testResults.numPassedTests,
+      failed: testResults.numFailedTests,
+      passRate: (testResults.numPassedTests / testResults.numTotalTests) * 100
+    };
+
+    const failures = testResults.testResults
+      .filter(t => t.status === 'failed')
+      .map(t => ({
+        name: t.title,
+        error: t.failureMessages[0],
+        duration: t.duration
+      }));
+
+coverage_assessment:
+  coverage_report_location: "/coverage/lcov-report/index.html"
+
+  programmatic_access: |
+    // Read coverage summary JSON
+    const coverageSummary = JSON.parse(
+      await readFile('coverage/coverage-summary.json', 'utf-8')
+    );
+
+    const lineCoverage = coverageSummary.total.lines.pct;
+    const branchCoverage = coverageSummary.total.branches.pct;
+    const functionCoverage = coverageSummary.total.functions.pct;
+
+  scoring_logic: |
+    // Quality dimension: Code coverage
+    let coveragePoints = 0;
+    if (lineCoverage >= 85) coveragePoints = 10;
+    else if (lineCoverage >= 75) coveragePoints = 7;
+    else if (lineCoverage >= 60) coveragePoints = 5;
+    else coveragePoints = 2;
+
+verifier_workflow:
+  phase_0_process: |
+    1. Primary-Verifier receives task submission via handoff button
+    2. Verifier loads task contract: await mcp.query('task_contracts', { filter: { task_id } })
+    3. Verifier loads submitted artifacts: await mcp.query('agent_artifacts', { filter: { task_id } })
+    4. Verifier runs tests: await vscode.tools.runCommands('npm run test:coverage')
+    5. Verifier parses results: JSON.parse(output) + read coverage/coverage-summary.json
+    6. Verifier scores 6 dimensions:
+       - Capability: Check required skills demonstrated
+       - Accountability: Check event logs present
+       - Quality: 
+           * Tests passing? (10 points)
+           * Coverage ≥85%? (10 points)
+           * Sanctuary culture? (5 points)
+           * Clean code? (5 points)
+       - Temporality: Dependencies satisfied, valid state transitions
+       - Context: Docs updated, patterns applied
+       - Artifact: All deliverables present, immutable, traceable
+    7. Verifier writes report: await mcp.insert('verification_reports', { ... })
+    8. Verifier shows result to human lead (handoff or completion message)
+
+test_failure_handling:
+  if_tests_fail:
+    automatic_action: "Quality dimension score capped at 15/30 (failed tests = 0/10)"
+    verifier_response: |
+      "Tests are failing. Here are the failures:
+
+      1. [Test name]: [Error message]
+      2. [Test name]: [Error message]
+
+      Please review and fix these issues. You have 2 more attempts.
+      No penalties—let's get this working together!"
+
+  if_coverage_below_threshold:
+    automatic_action: "Quality dimension score reduced proportionally"
+    calculation: |
+      if coverage < 85% (threshold):
+        coveragePoints = (coverage / 85) * 10
+        // e.g., 72% coverage → (72/85)*10 = 8.47 → 8 points instead of 10
+
+  if_no_tests_present:
+    automatic_action: "REJECT immediately (quality score = 0/30)"
+    verifier_message: |
+      "No tests found. Task contract requires test suite with 85% coverage.
+      This is a foundational requirement. Please add tests following the 
+      test-first workflow: 1) Write failing tests, 2) Implement, 3) Refactor."
+
+agent_test_writing:
+  test_first_workflow:
+    - step: "Read acceptance criteria from task contract"
+    - step: "Write tests that verify each acceptance criterion (tests fail initially)"
+    - step: "Implement minimum code to make tests pass"
+    - step: "Refactor for quality while keeping tests green"
+    - step: "Add edge case tests"
+    - step: "Run coverage check: npm run test:coverage"
+    - step: "Submit when coverage ≥85% and all tests pass"
+
+  example_test_file: |
+    // database/schema.test.ts
+    import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+    import { pool } from './connection';
+
+    describe('Events table', () => {
+      it('should prevent UPDATE operations', async () => {
+        // Insert event
+        const result = await pool.query(
+          'INSERT INTO events (type, source, data) VALUES ($1, $2, $3) RETURNING id',
+          ['taskmarket.test.created', 'test-agent', {}]
+        );
+        const eventId = result.rows[0].id;
+        
+        // Attempt UPDATE (should fail)
+        await expect(
+          pool.query('UPDATE events SET data = $1 WHERE id = $2', [{updated: true}, eventId])
+        ).rejects.toThrow('Events are immutable');
+      });
+      
+      it('should prevent DELETE operations', async () => {
+        const result = await pool.query(
+          'INSERT INTO events (type, source, data) VALUES ($1, $2, $3) RETURNING id',
+          ['taskmarket.test.created', 'test-agent', {}]
+        );
+        const eventId = result.rows[0].id;
+        
+        await expect(
+          pool.query('DELETE FROM events WHERE id = $1', [eventId])
+        ).rejects.toThrow('Events are immutable');
+      });
+    });
+
+package_json_scripts:
+  recommended_scripts: |
+    {
+      "scripts": {
+        "test": "vitest run",
+        "test:watch": "vitest watch",
+        "test:coverage": "vitest run --coverage",
+        "test:ui": "vitest --ui",
+        "test:json": "vitest run --reporter=json --outputFile=test-results.json"
+      }
+    }

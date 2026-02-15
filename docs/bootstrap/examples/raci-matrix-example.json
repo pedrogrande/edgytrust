@@ -1,0 +1,90 @@
+{
+  "workflow_id": "task-definition-workflow",
+  "workflow_name": "User Story to Task Contract Creation",
+  "phase": 0,
+  "version": "1.0.0",
+  "activities": [
+    {
+      "activity_id": "parse-user-story",
+      "activity_name": "Parse user story and extract requirements",
+      "raci": {
+        "Task-Definition-Agent": "R",
+        "Product-Owner-Agent": "I",
+        "Task-Testing-Agent": "I",
+        "Human-Lead": "A"
+      },
+      "notes": "Task-Definition-Agent reads user story, identifies capabilities, constraints. Human-Lead has veto power."
+    },
+    {
+      "activity_id": "generate-acceptance-criteria",
+      "activity_name": "Generate 5-15 measurable acceptance criteria",
+      "raci": {
+        "Task-Definition-Agent": "R",
+        "Product-Owner-Agent": "C",
+        "Task-Testing-Agent": "C",
+        "Human-Lead": "A"
+      },
+      "notes": "Task-Definition-Agent drafts ACs, consults Product-Owner for business logic, Task-Testing for testability. Human approves."
+    },
+    {
+      "activity_id": "define-6-dimensions",
+      "activity_name": "Specify all 6 ontology dimensions",
+      "raci": {
+        "Task-Definition-Agent": "R",
+        "Ontology-Advisor-Agent": "C",
+        "Human-Lead": "A"
+      },
+      "notes": "Task-Definition-Agent fills 6-dimension template, consults Ontology-Advisor if unclear. Human-Lead validates completeness."
+    },
+    {
+      "activity_id": "design-test-strategy",
+      "activity_name": "Design test strategy and list required tests",
+      "raci": {
+        "Task-Testing-Agent": "R",
+        "Task-Definition-Agent": "C",
+        "Human-Lead": "A"
+      },
+      "notes": "Task-Testing-Agent proposes test approach (unit/integration/e2e), Task-Definition includes in contract."
+    },
+    {
+      "activity_id": "assign-raci",
+      "activity_name": "Assign RACI roles for task execution",
+      "raci": {
+        "Task-Definition-Agent": "R",
+        "Human-Lead": "A"
+      },
+      "notes": "Task-Definition-Agent suggests RACI assignments (e.g., R=DB-Specialist, A=Human-Lead), Human approves."
+    },
+    {
+      "activity_id": "validate-sanctuary-culture",
+      "activity_name": "Ensure supportive language and reversibility",
+      "raci": {
+        "Cultural-Steward-Agent": "R",
+        "Task-Definition-Agent": "C",
+        "Human-Lead": "A"
+      },
+      "notes": "Cultural-Steward reviews task contract for punitive language, ensures 3-attempt limit, return-task option visible."
+    },
+    {
+      "activity_id": "review-and-approve",
+      "activity_name": "Final review and approval of task contract",
+      "raci": {
+        "Task-Definition-Agent": "I",
+        "Product-Owner-Agent": "I",
+        "Task-Testing-Agent": "I",
+        "Human-Lead": "A"
+      },
+      "notes": "Human-Lead makes final decision. Has veto power over any aspect of task contract."
+    }
+  ],
+  "escalation_paths": {
+    "unclear_requirements": "Task-Definition-Agent → Product-Owner-Agent → Human-Lead",
+    "raci_conflict": "Task-Definition-Agent → Human-Lead (immediate)",
+    "technical_feasibility": "Task-Definition-Agent → Technical-Architect-Agent → Human-Lead"
+  },
+  "phase_0_notes": "In Phase 0, Human-Lead is Accountable for ALL activities. This ensures learning and oversight. In Phase 1+, some accountability may delegate to autonomous agents (e.g., Cultural-Steward becomes Accountable for sanctuary culture validation).",
+  "metadata": {
+    "created_at": "2026-02-15T12:09:00Z",
+    "source": "Context document section: Agent team accountability (RACI)"
+  }
+}

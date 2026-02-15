@@ -1,0 +1,282 @@
+# @format
+
+event_schema_version: "1.0.0"
+format: "CloudEvents v1.0 compatible with extensions"
+phase: 0
+last_updated: "2026-02-15T12:13:00Z"
+
+standard_event_envelope:
+  required_fields:
+    id:
+      type: "uuid"
+      description: "Unique event identifier (primary key)"
+      example: "550e8400-e29b-41d4-a716-446655440000"
+      generation: "gen_random_uuid() in PostgreSQL"
+
+    specversion:
+      type: "string"
+      description: "CloudEvents specification version"
+      fixed_value: "1.0"
+
+    type:
+      type: "string"
+      description: "Event type in reverse-DNS format"
+      format: "domain.entity.action"
+      examples:
+        - "taskmarket.task.created"
+        - "taskmarket.task.claimed"
+        - "taskmarket.task.submitted"
+        - "taskmarket.verification.completed"
+      validation: "Must match pattern: ^taskmarket\\.[a-z_]+\\.[a-z_]+$"
+
+    source:
+      type: "string"
+      description: "Event producer (agent_id or system component)"
+      examples:
+        - "DB-Specialist-Agent-001"
+        - "Primary-Verifier-001"
+        - "system/mcp-server"
+      format: "agent_id or 'system/<component>'"
+
+    time:
+      type: "timestamptz"
+      description: "Event creation timestamp (ISO 8601)"
+      example: "2026-02-15T12:13:00.123Z"
+      default: "now() in PostgreSQL"
+
+    datacontenttype:
+      type: "string"
+      description: "MIME type of data payload"
+      fixed_value: "application/json"
+
+    data:
+      type: "jsonb"
+      description: "Event-specific payload (schema varies by event type)"
+      structure: "See event_type_schemas below"
+
+  optional_fields:
+    subject:
+      type: "string"
+      description: "Subject of event (e.g., task_id, agent_id)"
+      examples:
+        - "TASK-001"
+        - "DB-Specialist-Agent-001"
+      usage: "Primary entity affected by event"
+
+    dataschema:
+      type: "string"
+      description: "URI to schema for data payload"
+      example: "https://taskmarket.dev/schemas/task-created-v1.json"
+      phase_0_usage: "Optional (schema validation comes in Phase 1)"
+
+event_type_schemas:
+  "taskmarket.task.created":
+    description: "Task contract created and published"
+    data_schema:
+      task_id: "string (TASK-XXX format)"
+      title: "string"
+      created_by: "string (agent_id or 'human-lead')"
+      phase: "integer (0-5)"
+      status: "string (always 'OPEN' on creation)"
+    example:
+      id: "550e8400-e29b-41d4-a716-446655440000"
+      specversion: "1.0"
+      type: "taskmarket.task.created"
+      source: "Task-Definition-Agent-001"
+      subject: "TASK-001"
+      time: "2026-02-15T12:13:00.123Z"
+      datacontenttype: "application/json"
+      data:
+        task_id: "TASK-001"
+        title: "Create Event-Sourced Database Schema"
+        created_by: "Task-Definition-Agent-001"
+        phase: 0
+        status: "OPEN"
+        acceptance_criteria_count: 5
+        estimated_duration_hours: 8
+
+  "taskmarket.task.claimed":
+    description: "Agent claims task for execution"
+    data_schema:
+      task_id: "string"
+      claimed_by: "string (agent_id)"
+      claimed_at: "timestamp"
+      previous_status: "string (always 'OPEN')"
+      new_status: "string (always 'CLAIMED')"
+    example:
+      id: "660e8400-e29b-41d4-a716-446655440001"
+      specversion: "1.0"
+      type: "taskmarket.task.claimed"
+      source: "DB-Specialist-Agent-001"
+      subject: "TASK-001"
+      time: "2026-02-15T14:00:00.000Z"
+      datacontenttype: "application/json"
+      data:
+        task_id: "TASK-001"
+        claimed_by: "DB-Specialist-Agent-001"
+        claimed_at: "2026-02-15T14:00:00.000Z"
+        previous_status: "OPEN"
+        new_status: "CLAIMED"
+
+  "taskmarket.task.statechange":
+    description: "Generic state transition event (use for all status changes)"
+    data_schema:
+      task_id: "string"
+      agent_id: "string"
+      previous_status: "string (enum)"
+      new_status: "string (enum)"
+      reason: "string (optional)"
+      metadata: "object (optional)"
+    example:
+      id: "770e8400-e29b-41d4-a716-446655440002"
+      specversion: "1.0"
+      type: "taskmarket.task.statechange"
+      source: "DB-Specialist-Agent-001"
+      subject: "TASK-001"
+      time: "2026-02-15T16:30:00.000Z"
+      datacontenttype: "application/json"
+      data:
+        task_id: "TASK-001"
+        agent_id: "DB-Specialist-Agent-001"
+        previous_status: "EXECUTING"
+        new_status: "SUBMITTED"
+        reason: "All acceptance criteria met, tests passing"
+        metadata:
+          test_coverage: 87
+          artifacts_count: 4
+
+  "taskmarket.verification.completed":
+    description: "Verifier completes quality assessment"
+    data_schema:
+      task_id: "string"
+      verifier_id: "string"
+      verification_type: "string (primary|secondary|consensus)"
+      score: "integer (0-100)"
+      dimension_scores: "object (6 dimensions)"
+      recommendation: "string (APPROVE|APPROVE_WITH_NOTES|REVISE|REJECT)"
+    example:
+      id: "880e8400-e29b-41d4-a716-446655440003"
+      specversion: "1.0"
+      type: "taskmarket.verification.completed"
+      source: "Primary-Verifier-001"
+      subject: "TASK-001"
+      time: "2026-02-15T18:00:00.000Z"
+      datacontenttype: "application/json"
+      data:
+        task_id: "TASK-001"
+        verifier_id: "Primary-Verifier-001"
+        verification_type: "primary"
+        score: 95
+        dimension_scores:
+          capability: 15
+          accountability: 15
+          quality: 28
+          temporality: 10
+          context: 9
+          artifact: 18
+        recommendation: "APPROVE"
+        feedback_summary: "Outstanding implementation. Event sourcing expertly applied."
+
+event_naming_conventions:
+  format: "taskmarket.<entity>.<action>"
+  entities:
+    - "task"
+    - "verification"
+    - "agent"
+    - "artifact"
+    - "pattern" # Phase 1+
+  actions:
+    - "created"
+    - "updated"
+    - "deleted" # Rare, usually soft-delete via status change
+    - "claimed"
+    - "submitted"
+    - "verified"
+    - "rejected"
+    - "completed"
+  custom_events_phase_1:
+    - "taskmarket.bounty.released"
+    - "taskmarket.trustscore.updated"
+    - "taskmarket.challenge.filed"
+
+database_table_structure:
+  table_name: "events"
+  columns:
+    id: "UUID PRIMARY KEY DEFAULT gen_random_uuid()"
+    specversion: "VARCHAR(10) NOT NULL DEFAULT '1.0'"
+    type: "VARCHAR(100) NOT NULL"
+    source: "VARCHAR(200) NOT NULL"
+    subject: "VARCHAR(200)" # Optional
+    time: "TIMESTAMPTZ NOT NULL DEFAULT now()"
+    datacontenttype: "VARCHAR(50) NOT NULL DEFAULT 'application/json'"
+    dataschema: "VARCHAR(500)" # Optional
+    data: "JSONB NOT NULL"
+  indexes:
+    - "CREATE INDEX idx_events_type_time ON events(type, time DESC);"
+    - "CREATE INDEX idx_events_subject ON events(subject) WHERE subject IS NOT NULL;"
+    - "CREATE INDEX idx_events_source ON events(source);"
+    - "CREATE INDEX idx_events_data_gin ON events USING GIN(data);" # For JSONB queries
+  constraints:
+    - "CREATE TRIGGER prevent_event_modification BEFORE UPDATE OR DELETE ON events FOR EACH ROW EXECUTE FUNCTION reject_modification();"
+
+immutability_enforcement:
+  trigger_function: |
+    CREATE OR REPLACE FUNCTION reject_modification()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      RAISE EXCEPTION 'Events are immutable. Cannot UPDATE or DELETE from events table. Create a new event instead.';
+    END;
+    $$ LANGUAGE plpgsql;
+  rationale: "Event sourcing requires append-only event log. Modifications break audit trail and blockchain migration."
+
+usage_examples:
+  logging_event_from_agent:
+    typescript: |
+      // Agent logs state change via MCP
+      await mcp.insert('events', {
+        type: 'taskmarket.task.claimed',
+        source: myAgentId, // e.g., 'DB-Specialist-Agent-001'
+        subject: taskId,   // e.g., 'TASK-001'
+        data: {
+          task_id: taskId,
+          claimed_by: myAgentId,
+          claimed_at: new Date().toISOString(),
+          previous_status: 'OPEN',
+          new_status: 'CLAIMED'
+        }
+      });
+
+  querying_events:
+    sql: |
+      -- Get all events for a task
+      SELECT * FROM events
+      WHERE subject = 'TASK-001'
+      ORDER BY time ASC;
+
+      -- Get all verification events
+      SELECT * FROM events
+      WHERE type = 'taskmarket.verification.completed'
+      ORDER BY time DESC;
+
+      -- Reconstruct task state from events
+      WITH state_changes AS (
+        SELECT 
+          time,
+          data->>'new_status' AS status
+        FROM events
+        WHERE subject = 'TASK-001'
+          AND type = 'taskmarket.task.statechange'
+        ORDER BY time ASC
+      )
+      SELECT status FROM state_changes
+      ORDER BY time DESC
+      LIMIT 1; -- Current state
+
+cloudEvents_compliance:
+  specification: "https://github.com/cloudevents/spec/blob/v1.0/spec.md"
+  conformance: "Phase 0 implements CloudEvents v1.0 core required attributes"
+  extensions: "data.task_id, data.agent_id are domain-specific extensions"
+  benefits:
+    - "Interoperability with event-driven systems (Kafka, NATS, etc.) in Phase 3+"
+    - "Standard tooling for event validation, routing, observability"
+    - "Blockchain event mapping (CloudEvents → blockchain transactions) in Phase 5"

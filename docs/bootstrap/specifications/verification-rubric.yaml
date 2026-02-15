@@ -1,0 +1,218 @@
+# @format
+
+verification_rubric_version: "1.0.0"
+phase: 0
+last_updated: "2026-02-15T12:13:00Z"
+
+scoring_system:
+  total_points: 100
+  minimum_passing_score: 70
+  dimension_breakdown:
+    capability:
+      points: 15
+      description: "Does implementation use required skills correctly?"
+      evaluation_criteria:
+        - criterion: "Required capabilities demonstrated"
+          points: 5
+          examples:
+            - "Task requires 'database-design' → Schema follows normalization principles"
+            - "Task requires 'event-sourcing-pattern' → Immutable event log implemented"
+        - criterion: "Skill level appropriate"
+          points: 5
+          examples:
+            - "Intermediate task → Uses standard patterns, no overly complex solutions"
+            - "Expert task → Demonstrates advanced techniques where needed"
+        - criterion: "Tool usage correct"
+          points: 5
+          examples:
+            - "Used correct VSCode tools (edit, new, runCommands)"
+            - "Followed MCP access patterns (read from reference tables, write to execution notes)"
+
+    accountability:
+      points: 15
+      description: "Proper event logging, RACI followed?"
+      evaluation_criteria:
+        - criterion: "All state changes logged to events table"
+          points: 7
+          examples:
+            - "Task claimed → event_type='task.claimed' logged"
+            - "Task submitted → event_type='task.submitted' with proof artifacts"
+        - criterion: "RACI assignments respected"
+          points: 5
+          examples:
+            - "Consulted appropriate agents before decisions (if C role assigned)"
+            - "Informed relevant parties after completion (if I role assigned)"
+        - criterion: "Execution notes comprehensive"
+          points: 3
+          examples:
+            - "Logged design decisions, challenges, and resolutions"
+            - "Minimum 3 execution notes for tasks >4 hours"
+
+    quality:
+      points: 30
+      description: "Tests pass, coverage adequate, sanctuary culture applied?"
+      evaluation_criteria:
+        - criterion: "All tests passing"
+          points: 10
+          examples:
+            - "100% test pass rate (0 failures, 0 errors)"
+            - "Integration tests confirm end-to-end functionality"
+        - criterion: "Code coverage meets threshold"
+          points: 10
+          examples:
+            - "Line coverage ≥85% (as specified in task contract)"
+            - "Critical paths have 100% coverage (state transitions, validations)"
+        - criterion: "Sanctuary culture compliance"
+          points: 5
+          examples:
+            - "Error messages supportive: 'Let's fix this together' not 'Invalid input'"
+            - "Comments educational: Explain WHY, not just WHAT"
+        - criterion: "Code quality standards"
+          points: 5
+          examples:
+            - "Clean code: Descriptive names, small functions, single responsibility"
+            - "Linting passes: ESLint/Prettier rules satisfied"
+
+    temporality:
+      points: 10
+      description: "Dependencies respected, state transitions correct?"
+      evaluation_criteria:
+        - criterion: "Dependencies satisfied"
+          points: 5
+          examples:
+            - "Task lists TASK-001 as dependency → TASK-001 is VERIFIED before starting"
+            - "No circular dependencies created"
+        - criterion: "State transitions valid"
+          points: 5
+          examples:
+            - "Task followed OPEN→CLAIMED→EXECUTING→SUBMITTED→VERIFYING flow"
+            - "No invalid jumps (e.g., CLAIMED→VERIFIED)"
+
+    context:
+      points: 10
+      description: "Documentation updated, relevant patterns applied?"
+      evaluation_criteria:
+        - criterion: "Documentation updated"
+          points: 5
+          examples:
+            - "README updated if new setup steps added"
+            - "Inline code comments for complex logic"
+        - criterion: "Patterns applied correctly"
+          points: 5
+          examples:
+            - "Used 'CTE-atomic-transactions' pattern for state changes"
+            - "Followed 'sanctuary-messaging' pattern for user-facing text"
+
+    artifact:
+      points: 20
+      description: "Deliverables complete, immutable, traceable?"
+      evaluation_criteria:
+        - criterion: "All required artifacts present"
+          points: 10
+          examples:
+            - "Code files in specified paths"
+            - "Test suite with coverage report"
+            - "Polymorphic artifacts stored in agent_artifacts table"
+        - criterion: "Artifacts immutable and versioned"
+          points: 5
+          examples:
+            - "No modifications to previously verified artifacts"
+            - "New versions created with incremented version number"
+        - criterion: "Traceability maintained"
+          points: 5
+          examples:
+            - "All artifacts linked to task_id and agent_id"
+            - "Provenance clear (who created, when, why)"
+
+consensus_rules:
+  divergence_threshold: 10
+  divergence_calculation: "abs(primary_score - secondary_score)"
+
+  scenarios:
+    - condition: "Divergence ≤10 points"
+      action: "Accept primary verifier score as final"
+      example: "Primary: 85, Secondary: 78 → Divergence 7 → Use 85"
+
+    - condition: "Divergence >10 points AND both scores ≥70"
+      action: "Trigger Consensus-Resolver (manual in Phase 0)"
+      phase_0_process:
+        - "Primary-Verifier scores: 85"
+        - "Secondary-Verifier scores: 70"
+        - "Divergence: 15 points → Exceeds threshold"
+        - "Human-Lead reviews both verification reports"
+        - "Human-Lead makes final decision: Accept (70-100), Revise (<70), or Escalate (investigate verifier disagreement)"
+      phase_1_automation: "Consensus-Resolver agent analyzes both reports, interviews verifiers, produces binding decision"
+
+    - condition: "Divergence >10 points AND one score <70"
+      action: "Automatic REJECT, require rework"
+      example: "Primary: 65, Secondary: 80 → Divergence 15 AND primary failed → REJECT"
+      rationale: "If even one verifier sees critical issues, err on side of caution"
+
+    - condition: "Both scores <70"
+      action: "REJECT regardless of divergence"
+      example: "Primary: 65, Secondary: 68 → Both failed minimum → REJECT"
+
+  strictness_guidance:
+    phase_0: "Apply divergence rule STRICTLY. We're learning what verifiers disagree about to inform Phase 1 consensus algorithm."
+    goal: "By end of Phase 0, identify which dimensions cause most divergence → refine rubric for Phase 1"
+
+inter_rater_reliability:
+  target: 0.85
+  calculation: "Pearson correlation between primary and secondary scores across 10+ tasks"
+  phase_0_tracking: "Human-Lead documents divergence reasons in retrospectives"
+
+scoring_examples:
+  excellent_task:
+    capability: 15
+    accountability: 15
+    quality: 28
+    temporality: 10
+    context: 9
+    artifact: 20
+    total: 97
+    recommendation: "APPROVE"
+    feedback: "Outstanding work. Event sourcing pattern expertly applied. Test coverage excellent (92%). Sanctuary culture throughout. Only minor improvement: Add ERD diagram to docs for human readability."
+
+  good_task:
+    capability: 13
+    accountability: 14
+    quality: 26
+    temporality: 10
+    context: 8
+    artifact: 18
+    total: 89
+    recommendation: "APPROVE"
+    feedback: "Solid implementation. All tests passing, 87% coverage. Event logging complete. Minor deductions: One function >50 lines (refactor for clarity). Documentation could be more detailed."
+
+  acceptable_task:
+    capability: 12
+    accountability: 12
+    quality: 22
+    temporality: 9
+    context: 7
+    artifact: 16
+    total: 78
+    recommendation: "APPROVE_WITH_NOTES"
+    feedback: "Implementation meets minimum requirements. Tests pass (85% coverage), but integration tests missing for error cases. Event logging present but inconsistent format. Sanctuary culture applied in most places. Recommend: Add error-path tests, standardize event payload structure."
+
+  needs_revision:
+    capability: 10
+    accountability: 10
+    quality: 18
+    temporality: 8
+    context: 6
+    artifact: 12
+    total: 64
+    recommendation: "REVISE"
+    feedback: "Implementation has gaps. Test coverage only 72% (below 85% threshold). Missing event logs for state transitions. Error messages punitive ('Error: Invalid input' instead of supportive language). Good: Core logic works, dependencies correct. Revisions needed: Add missing tests, log all state changes, rewrite error messages with sanctuary culture."
+
+  rejected_task:
+    capability: 7
+    accountability: 8
+    quality: 12
+    temporality: 6
+    context: 4
+    artifact: 8
+    total: 45
+    recommendation: "REJECT"
+    feedback: "Critical issues prevent acceptance. 40% test failure rate. State transitions bypass event logging. Code violates clean code principles (functions >100 lines, unclear naming). No sanctuary culture applied. This needs substantial rework. Suggest: Review event sourcing patterns in reference docs, follow test-first workflow, consult clean-code-standards.md. No penalty for rejection—let's learn together and iterate."

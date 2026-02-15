@@ -1,0 +1,32 @@
+# @format
+
+# Task Contract: Implement Core Database Schema
+# ID: TASK-001
+# Phase: 0
+
+context:
+  description: "Implement the foundational database tables for Phase 0 Task Contract Mechanics."
+  architecture_ref: "docs/architecture/001-phase0-task-mechanics.md"
+  role: "Database-Designer-Agent"
+
+acceptance_criteria:
+  - "The `tasks` table exists with columns: id, title, status, assignee_id, created_at, updated_at."
+  - "The `status` column in `tasks` uses an ENUM or Check Constraint with values: OPEN, IN_PROGRESS, IN_REVIEW, COMPLETED, CANCELLED."
+  - "The `artifacts` table exists with columns: id, task_id, agent_id, type, uri, hash, created_at."
+  - "The `artifacts` table has a Foreign Key `task_id` referencing `tasks(id)`."
+  - "The `events` table is confirmed to exist (or created if missing) as per `docs/bootstrap/specifications/database-schema.sql`."
+  - "Indexes are created for `tasks(status)`, `tasks(assignee_id)`, and `artifacts(task_id)`."
+  - "A migration file (SQL) is created in `database/migrations/` to apply these changes."
+  - "The schema is idempotent (can be run multiple times without error)."
+
+verification:
+  type: "automated_test"
+  steps:
+    - "Run the migration against a test database."
+    - "Inspect information_schema to verify table and column existence."
+    - "Attempt to insert a task, an event, and an artifact."
+    - "Verify Foreign Key constraints by attempting to insert an artifact with an invalid task_id (should fail)."
+
+handoff:
+  to: "MCP-Integration-Agent"
+  message: "Schema implemented. Please expose these tables via MCP."

@@ -3,25 +3,225 @@
 This YAML file represents a Phase 0 task contract structure.
 
 ```yaml
-task_id: "TASK-001"
-title: "Create Task Contract Schema"
-type: "definition"
-status: "OPEN"
+task_id: TASK-001
+title: Create Event-Sourced Database Schema
+created_by: human-lead
+created_at: 2026-02-15T12:09:00Z
+assigned_to: DB-Specialist-Agent-001
+phase: 0
+week: 1
+status: OPEN
 
-capabilities_required:
-  - "schema-design"
-  - "yaml-authoring"
+description: |
+  Design and implement PostgreSQL database schema with event sourcing pattern.
+  Must support immutable event logging, task state management, and agent artifacts.
+  This is foundational infrastructure for the entire task marketplace system.
 
 acceptance_criteria:
-  - id: "AC-001"
-    description: "Schema must include all 6 ontology dimensions"
-  - id: "AC-002"
-    description: "Must support polymorphic artifact definitions"
+  - id: AC-001
+    description: Events table exists with append-only constraints
+    given: Empty PostgreSQL database
+    when: Migration script runs
+    then: |
+      - Table 'events' created with columns: id (UUID PK), event_type (VARCHAR), 
+        task_id (UUID), agent_id (VARCHAR), timestamp (TIMESTAMPTZ), payload (JSONB)
+      - Trigger prevents UPDATE and DELETE operations on events table
+      - Index on (task_id, timestamp) for efficient querying
+    
+  - id: AC-002
+    description: Task contracts table supports state machine
+    given: Task contracts table exists
+    when: State transition attempted
+    then: |
+      - Only valid transitions allowed: OPEN→CLAIMED→EXECUTING→SUBMITTED→VERIFYING→VERIFIED
+      - Invalid transitions (e.g., CLAIMED→VERIFIED) raise constraint violation
+      - State changes logged to events table via CTE transaction
+    
+  - id: AC-003
+    description: Verification reports table stores 6-dimension scores
+    given: Verification reports table exists
+    when: Verifier inserts report
+    then: |
+      - Columns include: id, task_id, verifier_id, score (0-100), 
+        dimension_scores (JSONB with 6 keys), feedback (TEXT), 
+        recommendation (ENUM: APPROVE/REJECT/REVISE)
+      - Dimension_scores JSONB validates 6 required keys: capability, accountability, 
+        quality, temporality, context, artifact
+    
+  - id: AC-004
+    description: Agent specifications table is read-only for agents
+    given: Agent specifications populated
+    when: Agent attempts INSERT/UPDATE/DELETE
+    then: MCP server returns 403 Forbidden (enforced at access control layer)
+    
+  - id: AC-005
+    description: Reference documentation table supports 3-tier hierarchy
+    given: Reference documentation table exists
+    when: Querying by tier
+    then: |
+      - Rows have 'tier' column (ENUM: always_loaded, conditional, on_demand)
+      - Category column enables filtering (e.g., 'quickref', 'patterns', 'project_vision')
+      - Content stored as TEXT (Markdown format)
 
-context:
-  budget: 5000 tokens
-  tier_1_docs:
-    - "ontology_definitions"
-```
+test_requirements:
+  framework: Vitest
+  coverage_target: 85
+  test_files:
+    - path: /database/schema.test.ts
+      tests:
+        - name: "Events table prevents UPDATE operations"
+          type: integration
+        - name: "Events table prevents DELETE operations"
+          type: integration
+        - name: "State machine allows valid transitions"
+          type: unit
+        - name: "State machine rejects invalid transitions"
+          type: unit
+        - name: "CTE atomic transaction logs state change + event"
+          type: integration
+        - name: "Verification reports validate 6-dimension scores"
+          type: integration
+        - name: "Agent specs are readable but not writable"
+          type: integration
 
-*Note: This is a placeholder. A concrete example is needed.*
+proof_requirements:
+  required_artifacts:
+    - type: sql_migration
+      path: /database/migrations/001_create_schema.sql
+      description: DDL for all tables with constraints
+    - type: test_suite
+      path: /database/schema.test.ts
+      description: Vitest tests with 85%+ coverage
+    - type: coverage_report
+      path: /coverage/lcov-report/index.html
+      description: HTML coverage report showing 85%+ line coverage
+    - type: polymorphic_artifact
+      storage: database.agent_artifacts
+      artifact_id: schema-v1-2026-02-15
+      description: Canonical database schema (JSON) + generated views (SQL, TypeScript types, ERD diagram)
+    - type: execution_notes
+      storage: database.task_execution_notes
+      description: Agent logs of design decisions and challenges encountered
+
+six_dimensions:
+  capability:
+    required_skills:
+      - database-design
+      - postgresql-proficiency
+      - event-sourcing-pattern
+      - sql-ddl
+      - schema-migration-tools
+    skill_level: intermediate
+    
+  accountability:
+    raci:
+      responsible: DB-Specialist-Agent-001
+      accountable: Human-Lead
+      consulted:
+        - Project-Architect-Agent (if exists in Week 1)
+      informed:
+        - Task-Definition-Agent
+        - Primary-Verifier
+        - All-Future-Agents (will use this schema)
+    escalation_path: "If uncertain about event sourcing pattern → Human-Lead"
+    
+  quality:
+    standards:
+      - Immutability: Events table append-only
+      - Sanctuary culture: Supportive comments in SQL (e.g., '-- Life happens: We use generous VARCHAR limits to avoid truncation errors')
+      - Clean code: Consistent naming (snake_case for columns, PascalCase for types)
+      - Migration readiness: All state changes logged as events
+    verification_method: "Primary-Verifier scores 0-100 across 6 dimensions"
+    minimum_score: 70
+    
+  temporality:
+    dependencies: []
+    blocks:
+      - TASK-002-mcp-server
+      - TASK-003-task-contract-schema
+    deadline: 2026-02-18T00:00:00Z
+    estimated_duration_hours: 8
+    state_transitions:
+      - from: OPEN
+        to: CLAIMED
+        trigger: Human assigns to DB-Specialist-Agent
+      - from: CLAIMED
+        to: EXECUTING
+        trigger: Agent begins work
+      - from: EXECUTING
+        to: SUBMITTED
+        trigger: Agent completes and submits proof
+      - from: SUBMITTED
+        to: VERIFYING
+        trigger: Primary-Verifier begins evaluation
+      - from: VERIFYING
+        to: VERIFIED
+        trigger: Verification score ≥70 and recommendation=APPROVE
+        
+  context:
+    tier_1_always_loaded:
+      - source: agent_specifications
+        query: "WHERE role = 'DB-Specialist-Agent'"
+      - source: task_contracts
+        query: "WHERE task_id = 'TASK-001'"
+      - source: patterns
+        query: "WHERE tier = 'core'"
+    tier_2_conditional:
+      - source: reference_documentation
+        query: "WHERE category = 'event-sourcing-patterns'"
+        load_if: "Agent indicates need for event sourcing guidance"
+      - source: patterns
+        query: "WHERE tags CONTAINS 'CTE-atomic-transactions'"
+        load_if: "Agent working on state transition logic"
+    tier_3_on_demand:
+      - source: reference_documentation
+        query: "WHERE category = 'database-architecture'"
+        description: "Full system database design philosophy"
+      - source: external
+        url: "https://martinfowler.com/eaaDev/EventSourcing.html"
+        description: "Martin Fowler's event sourcing reference"
+        
+  artifact:
+    produces:
+      - artifact_id: schema-v1-2026-02-15
+        artifact_type: database_schema
+        storage_location: database.agent_artifacts
+        polymorphic: true
+        canonical_format: json_schema_extended
+        generated_views:
+          - format: sql_ddl
+            consumer: DB-Setup-Agent
+            description: "CREATE TABLE statements for deployment"
+          - format: typescript_types
+            consumer: API-Specialist-Agent
+            description: "TypeScript interfaces for type safety"
+          - format: markdown_docs
+            consumer: Documentation-Writer-Agent
+            description: "Human-readable schema documentation"
+          - format: svg_erd
+            consumer: Human-Lead
+            description: "Entity Relationship Diagram for visualization"
+      - artifact_id: migration-001
+        artifact_type: code
+        storage_location: file_system
+        path: /database/migrations/001_create_schema.sql
+        immutable: true
+        versioned: true
+
+sanctuary_culture_notes: |
+  This is foundational infrastructure work. Take your time to understand event sourcing 
+  if you're unfamiliar. Ask questions without hesitation—there are no penalties for 
+  clarification requests. If you encounter ambiguity in the schema requirements, 
+  document your assumptions in execution_notes and flag for human review. We're 
+  learning together, and your insights will inform future iterations.
+  
+  Remember: "Life happens." If you need to return this task, no stigma attached. 
+  We'll learn from the attempt and adjust the task definition.
+
+metadata:
+  created_by: human-lead
+  reviewed_by: null
+  approved_by: null
+  complexity: medium
+  priority: critical
+  tags: [infrastructure, database, event-sourcing, phase-0, week-1]

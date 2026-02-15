@@ -1,0 +1,228 @@
+{
+  "artifact_schema_id": "polymorphic-artifact-v1",
+  "version": "1.0.0",
+  "description": "Schema for polymorphic artifacts: canonical representation + generated views",
+  "canonical_structure": {
+    "artifact_id": {
+      "type": "string",
+      "format": "kebab-case with version",
+      "example": "schema-v1-2026-02-15",
+      "required": true
+    },
+    "artifact_type": {
+      "type": "enum",
+      "allowed_values": [
+        "database_schema",
+        "api_specification",
+        "task_contract",
+        "verification_report",
+        "component_specification"
+      ],
+      "required": true
+    },
+    "produced_by": {
+      "type": "string",
+      "format": "agent_id",
+      "example": "DB-Specialist-Agent-001",
+      "required": true
+    },
+    "task_id": {
+      "type": "string",
+      "format": "TASK-XXX",
+      "example": "TASK-001",
+      "required": true
+    },
+    "canonical_representation": {
+      "type": "object",
+      "description": "Single source of truth for artifact content",
+      "properties": {
+        "format": {
+          "type": "string",
+          "description": "Format of canonical data",
+          "examples": [
+            "json_schema_extended",
+            "openapi_v3",
+            "yaml_structured"
+          ]
+        },
+        "content": {
+          "type": "object",
+          "description": "Actual artifact data in canonical format"
+        }
+      },
+      "required": true
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "ISO8601 datetime"
+        },
+        "verified_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Verification score from Primary-Verifier"
+        },
+        "immutable": {
+          "type": "boolean",
+          "description": "Whether artifact can be modified (usually true after verification)"
+        },
+        "version": {
+          "type": "string",
+          "description": "Semantic version if artifact updated"
+        }
+      },
+      "required": true
+    }
+  },
+  "example_canonical_artifact": {
+    "artifact_id": "schema-v1-2026-02-15",
+    "artifact_type": "database_schema",
+    "produced_by": "DB-Specialist-Agent-001",
+    "task_id": "TASK-001",
+    "canonical_representation": {
+      "format": "json_schema_extended",
+      "content": {
+        "tables": {
+          "task_contracts": {
+            "columns": {
+              "id": {
+                "type": "uuid",
+                "primary_key": true,
+                "default": "gen_random_uuid()"
+              },
+              "title": {
+                "type": "text",
+                "nullable": false
+              },
+              "status": {
+                "type": "enum",
+                "enum_values": [
+                  "OPEN",
+                  "CLAIMED",
+                  "EXECUTING",
+                  "SUBMITTED",
+                  "VERIFYING",
+                  "VERIFIED"
+                ],
+                "default": "OPEN"
+              },
+              "created_at": {
+                "type": "timestamptz",
+                "default": "now()"
+              }
+            },
+            "constraints": {
+              "check_valid_status_transition": "CREATE CONSTRAINT valid_transitions CHECK (...)"
+            },
+            "indexes": [
+              {
+                "name": "idx_status_created",
+                "columns": [
+                  "status",
+                  "created_at"
+                ],
+                "type": "btree"
+              }
+            ]
+          },
+          "events": {
+            "columns": {
+              "id": {
+                "type": "uuid",
+                "primary_key": true
+              },
+              "event_type": {
+                "type": "varchar(100)",
+                "nullable": false
+              },
+              "task_id": {
+                "type": "uuid",
+                "foreign_key": "task_contracts.id"
+              },
+              "payload": {
+                "type": "jsonb"
+              },
+              "timestamp": {
+                "type": "timestamptz",
+                "default": "now()"
+              }
+            },
+            "constraints": {
+              "immutable": "CREATE TRIGGER prevent_update_delete BEFORE UPDATE OR DELETE ON events FOR EACH ROW EXECUTE FUNCTION reject_modification()"
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "created_at": "2026-02-15T14:30:00Z",
+      "verified_score": 95,
+      "immutable": true,
+      "version": "1.0.0"
+    }
+  },
+  "generated_views_specification": {
+    "view_format_1": {
+      "format": "sql_ddl",
+      "consumer": "DB-Setup-Agent",
+      "generation_method": "Transform canonical JSON → CREATE TABLE statements",
+      "example_output": "CREATE TABLE task_contracts (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  title TEXT NOT NULL,\n  status VARCHAR(20) CHECK (status IN ('OPEN', 'CLAIMED', ...)),\n  created_at TIMESTAMPTZ DEFAULT now()\n);\n\nCREATE INDEX idx_status_created ON task_contracts(status, created_at);"
+    },
+    "view_format_2": {
+      "format": "typescript_types",
+      "consumer": "API-Specialist-Agent",
+      "generation_method": "Transform canonical JSON → TypeScript interfaces",
+      "example_output": "interface TaskContract {\n  id: string; // UUID\n  title: string;\n  status: 'OPEN' | 'CLAIMED' | 'EXECUTING' | 'SUBMITTED' | 'VERIFYING' | 'VERIFIED';\n  created_at: Date;\n}\n\ninterface Event {\n  id: string;\n  event_type: string;\n  task_id: string;\n  payload: Record<string, any>;\n  timestamp: Date;\n}"
+    },
+    "view_format_3": {
+      "format": "markdown_docs",
+      "consumer": "Documentation-Writer-Agent",
+      "generation_method": "Transform canonical JSON → Markdown tables",
+      "example_output": "# Database Schema\n\n### task_contracts table\n\n| Column | Type | Constraints | Description |\n|--------|------|-------------|-------------|\n| id | UUID | PRIMARY KEY | Unique task identifier |\n| title | TEXT | NOT NULL | Task title |\n| status | ENUM | CHECK | Current task state |\n| created_at | TIMESTAMPTZ | DEFAULT now() | Creation timestamp |"
+    },
+    "view_format_4": {
+      "format": "svg_erd",
+      "consumer": "Human-Lead",
+      "generation_method": "Transform canonical JSON → Graphviz/D3.js SVG diagram",
+      "example_output": "<svg>...</svg> (Entity Relationship Diagram showing tables, columns, relationships)"
+    }
+  },
+  "view_generation_api": {
+    "endpoint": "GET /artifacts/:artifact_id/view",
+    "parameters": {
+      "format": {
+        "type": "enum",
+        "allowed_values": [
+          "sql_ddl",
+          "typescript_types",
+          "markdown_docs",
+          "svg_erd"
+        ],
+        "required": true
+      }
+    },
+    "response": {
+      "artifact_id": "string",
+      "canonical_version": "string",
+      "view_format": "string",
+      "generated_content": "string",
+      "generated_at": "datetime",
+      "cache_expiry": "datetime"
+    },
+    "caching_strategy": "Views cached until canonical artifact updates (new version created)"
+  },
+  "storage_strategy": {
+    "canonical": "Database table: agent_artifacts.canonical_representation (JSONB column)",
+    "views": "On-demand generation + cache (Redis or in-memory for Phase 0)",
+    "rationale": "Canonical is source of truth. Views are derivatives that can be regenerated anytime."
+  },
+  "benefits": {
+    "single_source_of_truth": "No drift between SQL, TypeScript, docs",
+    "agent_efficiency": "Agents work in optimal format (JSON schema vs SQL vs types)",
+    "human_flexibility": "Generate human-readable views without burdening agent workflow",
+    "evolvability": "Add new view formats without touching canonical data"
+  }
+}

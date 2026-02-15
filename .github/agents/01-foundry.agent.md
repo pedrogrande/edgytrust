@@ -2,7 +2,6 @@
 description: 'Expert at designing Phase 0 agents for autonomous task marketplace system'
 name: Agent Foundry
 argument-hint: Describe agent role and Phase 0 capabilities (e.g., "Task-Definition-Coordinator" or "Primary-Verifier")
-model: Claude Sonnet 4.5
 tools: ['search', 'read', 'new', 'edit', 'fetch', 'githubRepo']
 ---
 
