@@ -18,12 +18,29 @@ async function runMigrations() {
     await client.connect();
     console.log('Connected to database.');
 
-    const schemaPath = path.join(process.cwd(), 'docs/bootstrap/specifications/database-schema.sql');
-    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+    const migrationsDir = path.join(process.cwd(), 'database/migrations');
+    
+    // Ensure migrations directory exists
+    if (!fs.existsSync(migrationsDir)) {
+      console.log('No migrations directory found.');
+      return;
+    }
 
-    console.log('Running migrations...');
-    await client.query(schemaSql);
-    console.log('Migrations completed successfully.');
+    const files = fs.readdirSync(migrationsDir)
+      .filter(f => f.endsWith('.sql'))
+      .sort(); // Run in alphabetical order (001, 002, etc.)
+
+    console.log(`Found ${files.length} migration files.`);
+
+    for (const file of files) {
+      console.log(`Running migration: ${file}`);
+      const filePath = path.join(migrationsDir, file);
+      const sql = fs.readFileSync(filePath, 'utf8');
+      await client.query(sql);
+      console.log(`Migration ${file} applied.`);
+    }
+
+    console.log('All migrations completed successfully.');
 
     // Verify tables
     const res = await client.query(`
