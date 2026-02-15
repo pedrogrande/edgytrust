@@ -1,0 +1,52 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "surrealdb-url",
+      "description": "SurrealDB URL",
+      "default": "ws://localhost:8000/rpc"
+    },
+    {
+      "type": "promptString",
+      "id": "surrealdb-ns",
+      "description": "SurrealDB Namespace"
+    },
+    {
+      "type": "promptString",
+      "id": "surrealdb-db",
+      "description": "SurrealDB Database"
+    },
+    {
+      "type": "promptString",
+      "id": "surrealdb-user",
+      "description": "SurrealDB Username"
+    },
+    {
+      "type": "promptString",
+      "id": "surrealdb-pass",
+      "description": "SurrealDB Password",
+      "password": true
+    }
+  ],
+  "servers": {
+    "SurrealDB": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--pull", "always",
+        "surrealdb/surrealmcp:latest",
+        "start"
+      ],
+      "env": {
+        "SURREALDB_URL": "${input:surrealdb-url}",
+        "SURREALDB_NS": "${input:surrealdb-ns}",
+        "SURREALDB_DB": "${input:surrealdb-db}",
+        "SURREALDB_USER": "${input:surrealdb-user}",
+        "SURREALDB_PASS": "${input:surrealdb-pass}"
+      }
+    }
+  }
+}

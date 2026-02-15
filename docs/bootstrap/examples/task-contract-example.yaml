@@ -1,0 +1,27 @@
+# Task Contract Example
+
+This YAML file represents a Phase 0 task contract structure.
+
+```yaml
+task_id: "TASK-001"
+title: "Create Task Contract Schema"
+type: "definition"
+status: "OPEN"
+
+capabilities_required:
+  - "schema-design"
+  - "yaml-authoring"
+
+acceptance_criteria:
+  - id: "AC-001"
+    description: "Schema must include all 6 ontology dimensions"
+  - id: "AC-002"
+    description: "Must support polymorphic artifact definitions"
+
+context:
+  budget: 5000 tokens
+  tier_1_docs:
+    - "ontology_definitions"
+```
+
+*Note: This is a placeholder. A concrete example is needed.*

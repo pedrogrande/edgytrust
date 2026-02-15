@@ -1,0 +1,22 @@
+{
+  "task_id": "TASK-001",
+  "verifier_id": "AGENT-VERIFIER-01",
+  "score": 85,
+  "dimension_scores": {
+    "capability": 20,
+    "accountability": 8,
+    "quality": 25,
+    "temporality": 9,
+    "context": 8,
+    "artifact": 15
+  },
+  "feedback": {
+    "strengths": [
+      "Excellent schema validation"
+    ],
+    "improvements": [
+      "Documentation could be more verbose"
+    ]
+  },
+  "recommendation": "APPROVE"
+}
